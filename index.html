@@ -1,0 +1,753 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>IELTS Word Trainer</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card-bg: #020617;
+      --accent: #f97316;
+      --accent-soft: rgba(249, 115, 22, 0.12);
+      --text-main: #e5e7eb;
+      --text-soft: #9ca3af;
+      --correct: #22c55e;
+      --wrong: #ef4444;
+      --shadow-soft: 0 18px 45px rgba(15, 23, 42, 0.85);
+      --radius-lg: 22px;
+      --radius-pill: 999px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text",
+        "Segoe UI", sans-serif;
+    }
+
+    body {
+      min-height: 100vh;
+      background: radial-gradient(circle at top, #1f2937 0, #020617 55%, #000 100%);
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+
+    .app-shell {
+      width: 100%;
+      max-width: 420px;
+      background: linear-gradient(145deg, #020617, #020617, #020617);
+      border-radius: 32px;
+      box-shadow: var(--shadow-soft);
+      border: 1px solid rgba(148, 163, 184, 0.18);
+      padding: 20px 20px 24px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .app-shell::before {
+      content: "";
+      position: absolute;
+      inset: -40%;
+      background:
+        radial-gradient(circle at 0 0, rgba(249, 115, 22, 0.18), transparent 55%),
+        radial-gradient(circle at 100% 0, rgba(56, 189, 248, 0.16), transparent 55%);
+      opacity: 0.9;
+      pointer-events: none;
+      mix-blend-mode: screen;
+    }
+
+    .app-inner {
+      position: relative;
+      z-index: 1;
+    }
+
+    .app-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 18px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .brand-logo {
+      width: 34px;
+      height: 34px;
+      border-radius: 14px;
+      background: radial-gradient(circle at 30% 0, #fed7aa, #f97316);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #0f172a;
+      font-weight: 800;
+      font-size: 18px;
+      box-shadow: 0 10px 25px rgba(248, 113, 22, 0.55);
+    }
+
+    .brand-text {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .brand-title {
+      font-size: 16px;
+      font-weight: 700;
+      letter-spacing: 0.03em;
+    }
+
+    .brand-sub {
+      font-size: 11px;
+      color: var(--text-soft);
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+    }
+
+    .streak-pill {
+      padding: 6px 12px;
+      border-radius: var(--radius-pill);
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid rgba(148, 163, 184, 0.4);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      color: var(--text-soft);
+    }
+
+    .streak-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      background: radial-gradient(circle at 30% 0, #facc15, #f97316);
+      box-shadow: 0 0 12px rgba(250, 204, 21, 0.8);
+    }
+
+    .streak-number {
+      color: #facc15;
+      font-weight: 600;
+    }
+
+    .progress-card {
+      background: rgba(15, 23, 42, 0.9);
+      border-radius: 20px;
+      padding: 14px 14px 12px;
+      border: 1px solid rgba(148, 163, 184, 0.35);
+      margin-bottom: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .progress-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12px;
+      color: var(--text-soft);
+    }
+
+    .progress-label {
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      font-size: 10px;
+    }
+
+    .progress-value {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--accent);
+    }
+
+    .progress-bar {
+      width: 100%;
+      height: 8px;
+      border-radius: 999px;
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid rgba(148, 163, 184, 0.4);
+      overflow: hidden;
+      position: relative;
+    }
+
+    .progress-fill {
+      height: 100%;
+      width: 0%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, #f97316, #facc15);
+      box-shadow: 0 0 18px rgba(249, 115, 22, 0.7);
+      transition: width 0.35s ease-out;
+    }
+
+    .progress-meta {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      color: var(--text-soft);
+    }
+
+    .pill-soft {
+      padding: 4px 10px;
+      border-radius: var(--radius-pill);
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid rgba(148, 163, 184, 0.4);
+    }
+
+    .main-card {
+      background: rgba(15, 23, 42, 0.96);
+      border-radius: var(--radius-lg);
+      padding: 18px 16px 16px;
+      border: 1px solid rgba(148, 163, 184, 0.4);
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .tag-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 11px;
+      color: var(--text-soft);
+    }
+
+    .tag {
+      padding: 4px 10px;
+      border-radius: var(--radius-pill);
+      background: var(--accent-soft);
+      color: #fed7aa;
+      font-size: 11px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .tag-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 999px;
+      background: #f97316;
+    }
+
+    .mode-pill {
+      padding: 4px 10px;
+      border-radius: var(--radius-pill);
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid rgba(148, 163, 184, 0.4);
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .mode-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 999px;
+      background: #22c55e;
+      box-shadow: 0 0 10px rgba(34, 197, 94, 0.8);
+    }
+
+    .word-block {
+      text-align: left;
+      margin-top: 4px;
+    }
+
+    .word-label {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      color: var(--text-soft);
+      margin-bottom: 4px;
+    }
+
+    .word-main {
+      font-size: 26px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      margin-bottom: 4px;
+    }
+
+    .word-phonetic {
+      font-size: 13px;
+      color: var(--text-soft);
+      margin-bottom: 6px;
+    }
+
+    .word-meaning {
+      font-size: 13px;
+      color: #e5e7eb;
+      opacity: 0.9;
+    }
+
+    .options-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .option-btn {
+      width: 100%;
+      border-radius: 16px;
+      border: 1px solid rgba(148, 163, 184, 0.45);
+      background: rgba(15, 23, 42, 0.9);
+      color: var(--text-main);
+      padding: 10px 12px;
+      font-size: 13px;
+      text-align: left;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      transition: all 0.18s ease-out;
+    }
+
+    .option-label {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      color: var(--text-soft);
+    }
+
+    .option-text {
+      font-size: 13px;
+    }
+
+    .option-btn:hover {
+      border-color: rgba(249, 115, 22, 0.7);
+      background: radial-gradient(circle at 0 0, rgba(249, 115, 22, 0.12), rgba(15, 23, 42, 0.98));
+      transform: translateY(-1px);
+    }
+
+    .option-btn.correct {
+      border-color: rgba(34, 197, 94, 0.9);
+      background: radial-gradient(circle at 0 0, rgba(34, 197, 94, 0.16), rgba(15, 23, 42, 0.98));
+      box-shadow: 0 0 18px rgba(34, 197, 94, 0.4);
+    }
+
+    .option-btn.wrong {
+      border-color: rgba(239, 68, 68, 0.9);
+      background: radial-gradient(circle at 0 0, rgba(239, 68, 68, 0.16), rgba(15, 23, 42, 0.98));
+      box-shadow: 0 0 18px rgba(239, 68, 68, 0.4);
+    }
+
+    .option-status {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      color: var(--text-soft);
+    }
+
+    .option-status.correct {
+      color: #4ade80;
+    }
+
+    .option-status.wrong {
+      color: #fb7185;
+    }
+
+    .footer-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 10px;
+      gap: 10px;
+    }
+
+    .hint-text {
+      font-size: 11px;
+      color: var(--text-soft);
+    }
+
+    .primary-btn {
+      border-radius: var(--radius-pill);
+      border: none;
+      padding: 9px 16px;
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      cursor: pointer;
+      background: linear-gradient(135deg, #f97316, #facc15);
+      color: #0f172a;
+      box-shadow: 0 12px 25px rgba(249, 115, 22, 0.6);
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: transform 0.15s ease-out, box-shadow 0.15s ease-out;
+    }
+
+    .primary-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 16px 30px rgba(249, 115, 22, 0.75);
+    }
+
+    .primary-btn:active {
+      transform: translateY(0);
+      box-shadow: 0 10px 20px rgba(249, 115, 22, 0.55);
+    }
+
+    .primary-btn span {
+      font-size: 14px;
+    }
+
+    .primary-btn small {
+      font-size: 11px;
+      opacity: 0.9;
+    }
+
+    .tiny-meta {
+      margin-top: 10px;
+      font-size: 10px;
+      color: var(--text-soft);
+      text-align: center;
+      opacity: 0.8;
+    }
+
+    @media (max-width: 480px) {
+      .app-shell {
+        padding: 16px 14px 18px;
+        border-radius: 26px;
+      }
+      .main-card {
+        padding: 16px 12px 14px;
+      }
+      .word-main {
+        font-size: 24px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <div class="app-inner">
+      <header class="app-header">
+        <div class="brand">
+          <div class="brand-logo">I</div>
+          <div class="brand-text">
+            <div class="brand-title">IELTS Pulse</div>
+            <div class="brand-sub">Daily word focus</div>
+          </div>
+        </div>
+        <div class="streak-pill">
+          <div class="streak-dot"></div>
+          <span class="streak-number" id="streak">3</span>
+          <span>day streak</span>
+        </div>
+      </header>
+
+      <section class="progress-card">
+        <div class="progress-top">
+          <span class="progress-label">Session progress</span>
+          <span class="progress-value"><span id="currentIndex">1</span>/<span id="totalWords">10</span></span>
+        </div>
+        <div class="progress-bar">
+          <div class="progress-fill" id="progressFill"></div>
+        </div>
+        <div class="progress-meta">
+          <span class="pill-soft"><span id="masteredCount">0</span> mastered</span>
+          <span class="pill-soft"><span id="remainingCount">9</span> to go</span>
+        </div>
+      </section>
+
+      <main class="main-card">
+        <div class="tag-row">
+          <div class="tag">
+            <div class="tag-dot"></div>
+            <span id="levelTag">IELTS Band 6–7</span>
+          </div>
+          <div class="mode-pill">
+            <div class="mode-dot"></div>
+            <span>Focus mode</span>
+          </div>
+        </div>
+
+        <div class="word-block">
+          <div class="word-label">Today’s word</div>
+          <div class="word-main" id="wordText">meticulous</div>
+          <div class="word-phonetic" id="wordPhonetic">/məˈtɪkjələs/</div>
+          <div class="word-meaning" id="wordMeaning">
+            Showing great attention to detail; very careful and precise.
+          </div>
+        </div>
+
+        <div class="options-grid" id="optionsGrid">
+          <!-- Options injected by JS -->
+        </div>
+
+        <div class="footer-row">
+          <div class="hint-text" id="feedbackText">
+            Choose the closest meaning to lock this word into memory.
+          </div>
+          <button class="primary-btn" id="nextBtn">
+            <span>Next</span>
+            <small>space</small>
+          </button>
+        </div>
+      </main>
+
+      <div class="tiny-meta">
+        Tiny IELTS word trainer · One focused word at a time.
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const words = [
+      {
+        word: "meticulous",
+        phonetic: "/məˈtɪkjələs/",
+        meaning: "Showing great attention to detail; very careful and precise.",
+        options: [
+          "Showing great attention to detail; very careful and precise.",
+          "Done in a hurry without thinking.",
+          "Lacking interest or enthusiasm.",
+          "Very loud and aggressive."
+        ],
+        correctIndex: 0,
+        level: "IELTS Band 6–7"
+      },
+      {
+        word: "alleviate",
+        phonetic: "/əˈliːvieɪt/",
+        meaning: "To make something less severe or painful.",
+        options: [
+          "To completely remove something.",
+          "To make something less severe or painful.",
+          "To ignore a problem intentionally.",
+          "To cause something to happen suddenly."
+        ],
+        correctIndex: 1,
+        level: "IELTS Band 6–7"
+      },
+      {
+        word: "inevitable",
+        phonetic: "/ɪˈnevɪtəbl/",
+        meaning: "Certain to happen; unavoidable.",
+        options: [
+          "Very unlikely to occur.",
+          "Certain to happen; unavoidable.",
+          "Difficult to understand.",
+          "Easy to control or change."
+        ],
+        correctIndex: 1,
+        level: "IELTS Band 6–7"
+      },
+      {
+        word: "ambiguous",
+        phonetic: "/æmˈbɪɡjuəs/",
+        meaning: "Open to more than one interpretation; not clear.",
+        options: [
+          "Very easy to understand.",
+          "Open to more than one interpretation; not clear.",
+          "Extremely detailed and precise.",
+          "Completely unimportant."
+        ],
+        correctIndex: 1,
+        level: "IELTS Band 7–8"
+      },
+      {
+        word: "feasible",
+        phonetic: "/ˈfiːzəbl/",
+        meaning: "Possible and practical to do easily or conveniently.",
+        options: [
+          "Impossible to achieve.",
+          "Possible and practical to do easily or conveniently.",
+          "Very expensive and unnecessary.",
+          "Extremely risky and dangerous."
+        ],
+        correctIndex: 1,
+        level: "IELTS Band 6–7"
+      },
+      {
+        word: "prevalent",
+        phonetic: "/ˈprevələnt/",
+        meaning: "Widespread in a particular area or at a particular time.",
+        options: [
+          "Rare and unusual.",
+          "Widespread in a particular area or at a particular time.",
+          "Hidden and secret.",
+          "Old-fashioned and outdated."
+        ],
+        correctIndex: 1,
+        level: "IELTS Band 6–7"
+      },
+      {
+        word: "scrutinize",
+        phonetic: "/ˈskruːtənaɪz/",
+        meaning: "To examine something very carefully in detail.",
+        options: [
+          "To briefly look at something.",
+          "To ignore something intentionally.",
+          "To examine something very carefully in detail.",
+          "To destroy something completely."
+        ],
+        correctIndex: 2,
+        level: "IELTS Band 7–8"
+      },
+      {
+        word: "mitigate",
+        phonetic: "/ˈmɪtɪɡeɪt/",
+        meaning: "To make something less harmful, serious, or severe.",
+        options: [
+          "To make something more harmful.",
+          "To make something less harmful, serious, or severe.",
+          "To hide something from others.",
+          "To exaggerate a problem."
+        ],
+        correctIndex: 1,
+        level: "IELTS Band 7–8"
+      },
+      {
+        word: "substantial",
+        phonetic: "/səbˈstænʃl/",
+        meaning: "Large in amount, value, or importance.",
+        options: [
+          "Very small and unimportant.",
+          "Large in amount, value, or importance.",
+          "Completely imaginary.",
+          "Difficult to measure."
+        ],
+        correctIndex: 1,
+        level: "IELTS Band 6–7"
+      },
+      {
+        word: "consequently",
+        phonetic: "/ˈkɒnsɪkwəntli/",
+        meaning: "As a result; therefore.",
+        options: [
+          "Before something happens.",
+          "As a result; therefore.",
+          "Even though; despite this.",
+          "At the same time."
+        ],
+        correctIndex: 1,
+        level: "IELTS Band 6–7"
+      }
+    ];
+
+    let current = 0;
+    let mastered = 0;
+    let hasAnswered = false;
+
+    const wordText = document.getElementById("wordText");
+    const wordPhonetic = document.getElementById("wordPhonetic");
+    const wordMeaning = document.getElementById("wordMeaning");
+    const levelTag = document.getElementById("levelTag");
+    const optionsGrid = document.getElementById("optionsGrid");
+    const feedbackText = document.getElementById("feedbackText");
+    const nextBtn = document.getElementById("nextBtn");
+    const currentIndexEl = document.getElementById("currentIndex");
+    const totalWordsEl = document.getElementById("totalWords");
+    const masteredCountEl = document.getElementById("masteredCount");
+    const remainingCountEl = document.getElementById("remainingCount");
+    const progressFill = document.getElementById("progressFill");
+
+    totalWordsEl.textContent = words.length;
+
+    function renderWord() {
+      const item = words[current];
+      wordText.textContent = item.word;
+      wordPhonetic.textContent = item.phonetic;
+      wordMeaning.textContent = item.meaning;
+      levelTag.textContent = item.level;
+      currentIndexEl.textContent = current + 1;
+      remainingCountEl.textContent = words.length - current - 1;
+      const progress = ((current) / words.length) * 100;
+      progressFill.style.width = progress + "%";
+
+      feedbackText.textContent = "Choose the closest meaning to lock this word into memory.";
+      optionsGrid.innerHTML = "";
+      hasAnswered = false;
+
+      item.options.forEach((opt, index) => {
+        const btn = document.createElement("button");
+        btn.className = "option-btn";
+        btn.dataset.index = index;
+
+        const left = document.createElement("div");
+        const label = document.createElement("div");
+        label.className = "option-label";
+        label.textContent = "Option " + String.fromCharCode(65 + index);
+        const text = document.createElement("div");
+        text.className = "option-text";
+        text.textContent = opt;
+        left.appendChild(label);
+        left.appendChild(text);
+
+        const status = document.createElement("div");
+        status.className = "option-status";
+        status.textContent = "Tap to choose";
+
+        btn.appendChild(left);
+        btn.appendChild(status);
+
+        btn.addEventListener("click", () => handleOptionClick(btn, index));
+
+        optionsGrid.appendChild(btn);
+      });
+    }
+
+    function handleOptionClick(button, index) {
+      if (hasAnswered) return;
+      hasAnswered = true;
+
+      const item = words[current];
+      const buttons = optionsGrid.querySelectorAll(".option-btn");
+
+      buttons.forEach((btn, i) => {
+        const status = btn.querySelector(".option-status");
+        if (i === item.correctIndex) {
+          btn.classList.add("correct");
+          status.textContent = "Correct meaning";
+          status.classList.add("correct");
+        } else if (i === index) {
+          btn.classList.add("wrong");
+          status.textContent = "Your choice";
+          status.classList.add("wrong");
+        } else {
+          status.textContent = "";
+        }
+      });
+
+      if (index === item.correctIndex) {
+        mastered++;
+        masteredCountEl.textContent = mastered;
+        feedbackText.textContent = "Nice! This word is now one step closer to fluent memory.";
+      } else {
+        feedbackText.textContent = "Good try. Read the correct meaning once more, then move on.";
+      }
+    }
+
+    function goNext() {
+      if (current < words.length - 1) {
+        current++;
+        renderWord();
+      } else {
+        feedbackText.textContent = "Session complete. You’ve touched all today’s words—come back tomorrow for more.";
+        progressFill.style.width = "100%";
+      }
+    }
+
+    nextBtn.addEventListener("click", goNext);
+
+    document.addEventListener("keydown", (e) => {
+      if (e.code === "Space") {
+        e.preventDefault();
+        goNext();
+      }
+    });
+
+    renderWord();
+  </script>
+</body>
+</html>
